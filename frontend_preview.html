@@ -1,0 +1,2111 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local AI Hub</title>
+    <style>
+        /* ===== CSS ПЕРЕМЕННЫЕ ТЕМ ===== */
+        :root {
+            --transition-speed: 0.25s;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-tertiary: #0f3460;
+            --bg-input: #1a1a2e;
+            --bg-message-user: #0f3460;
+            --bg-message-assistant: #1a1a2e;
+            --bg-modal: #16213e;
+            --bg-toast: #16213e;
+            --bg-hover: #0f3460;
+            --bg-active: #e94560;
+            --bg-sidebar: #16213e;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0b0;
+            --text-muted: #666;
+            --text-accent: #e94560;
+            --text-on-active: #ffffff;
+            --border-primary: #0f3460;
+            --border-message: #0f3460;
+            --accent: #e94560;
+            --accent-hover: #c73652;
+            --accent-soft: rgba(233, 69, 96, 0.15);
+            --success: #28a745;
+            --success-soft: rgba(40, 167, 69, 0.15);
+            --info: #4fc3f7;
+            --info-soft: rgba(79, 195, 247, 0.15);
+            --danger: #e94560;
+            --danger-soft: rgba(233, 69, 96, 0.15);
+            --overlay: rgba(0, 0, 0, 0.6);
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+            --scrollbar-thumb: #0f3460;
+            --scrollbar-track: transparent;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f5f5f5;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #e8e8e8;
+            --bg-input: #ffffff;
+            --bg-message-user: #e3f2fd;
+            --bg-message-assistant: #ffffff;
+            --bg-modal: #ffffff;
+            --bg-toast: #ffffff;
+            --bg-hover: #f0f0f0;
+            --bg-active: #e94560;
+            --bg-sidebar: #ffffff;
+            --text-primary: #1a1a2e;
+            --text-secondary: #555;
+            --text-muted: #999;
+            --text-accent: #e94560;
+            --text-on-active: #ffffff;
+            --border-primary: #e0e0e0;
+            --border-message: #e0e0e0;
+            --accent: #e94560;
+            --accent-hover: #d63b55;
+            --accent-soft: rgba(233, 69, 96, 0.1);
+            --success: #28a745;
+            --success-soft: rgba(40, 167, 69, 0.1);
+            --info: #1976d2;
+            --info-soft: rgba(25, 118, 210, 0.1);
+            --danger: #e94560;
+            --danger-soft: rgba(233, 69, 96, 0.1);
+            --overlay: rgba(0, 0, 0, 0.3);
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            --scrollbar-thumb: #ccc;
+            --scrollbar-track: transparent;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            transition: background var(--transition-speed), color var(--transition-speed);
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+        ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+
+        /* ===== САЙДБАР ===== */
+        .sidebar {
+            width: 300px;
+            min-width: 300px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-primary);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            transition: background var(--transition-speed), border-color var(--transition-speed);
+        }
+
+        .sidebar-header {
+            padding: 16px 16px 12px;
+            border-bottom: 1px solid var(--border-primary);
+            transition: border-color var(--transition-speed);
+        }
+
+        .sidebar-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .sidebar-top h2 {
+            font-size: 17px;
+            color: var(--text-accent);
+            font-weight: 700;
+        }
+
+        .theme-toggle {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--border-primary);
+            border-radius: 8px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-speed);
+        }
+
+        .theme-toggle:hover {
+            background: var(--accent);
+            color: var(--text-on-active);
+            border-color: var(--accent);
+        }
+
+        .btn-new-project {
+            width: 100%;
+            padding: 10px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-new-project:hover {
+            background: var(--accent-hover);
+        }
+
+        /* ===== ПРОЕКТЫ ===== */
+        .project-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .project {
+            margin-bottom: 4px;
+        }
+
+        .project-header {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.15s;
+            gap: 8px;
+            user-select: none;
+        }
+
+        .project-header:hover {
+            background: var(--bg-hover);
+        }
+
+        .project-header.active {
+            background: var(--accent-soft);
+        }
+
+        .project-header .project-icon {
+            font-size: 15px;
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .project-header .project-name {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .project-header .project-chevron {
+            font-size: 10px;
+            color: var(--text-muted);
+            transition: transform 0.2s;
+            flex-shrink: 0;
+        }
+
+        .project-header.expanded .project-chevron {
+            transform: rotate(90deg);
+        }
+
+        .project-actions {
+            display: flex;
+            gap: 2px;
+            opacity: 0.45;
+            transition: opacity 0.15s;
+        }
+
+        .project-header:hover .project-actions {
+            opacity: 1;
+        }
+
+        .btn-icon {
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+
+        .btn-icon:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-icon.danger {
+            background: var(--danger-soft);
+            color: var(--danger);
+        }
+
+        .btn-icon.danger:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* ===== ЧАТЫ ===== */
+        .chats-list {
+            margin-left: 20px;
+            padding: 4px 0 4px 12px;
+            border-left: 2px solid var(--border-primary);
+            display: none;
+            transition: border-color var(--transition-speed);
+        }
+
+        .chats-list.open {
+            display: block;
+        }
+
+        .chats-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 8px;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .chats-header .btn-icon {
+            width: 22px;
+            height: 22px;
+            font-size: 13px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            opacity: 0.5;
+        }
+
+        .chats-header .btn-icon:hover {
+            opacity: 1;
+        }
+
+        .chat-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            transition: all 0.15s;
+            gap: 8px;
+            margin: 1px 0;
+        }
+
+        .chat-item:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .chat-item.active {
+            background: var(--accent);
+            color: var(--text-on-active);
+        }
+
+        .chat-item .chat-icon {
+            font-size: 13px;
+            width: 18px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .chat-item .chat-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .chat-item .chat-actions {
+            display: flex;
+            gap: 2px;
+            opacity: 0.45;
+            transition: opacity 0.15s;
+        }
+
+        .chat-item:hover .chat-actions {
+            opacity: 1;
+        }
+
+        .chat-item.active .chat-actions {
+            opacity: 0.7;
+        }
+
+        .chat-item.active .chat-actions:hover {
+            opacity: 1;
+        }
+
+        .chat-item.active .btn-icon {
+            background: rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.85);
+        }
+
+        .chat-item.active .btn-icon:hover {
+            background: rgba(255,255,255,0.25);
+            color: white;
+        }
+
+        .chat-item.active .btn-icon.danger {
+            background: rgba(255,100,100,0.2);
+            color: #ff8a8a;
+        }
+
+        .chat-item.active .btn-icon.danger:hover {
+            background: rgba(255,80,80,0.4);
+            color: white;
+        }
+
+        /* ===== ОСНОВНАЯ ОБЛАСТЬ ===== */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            min-width: 0;
+        }
+
+        .main-header {
+            padding: 14px 24px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all var(--transition-speed);
+        }
+
+        .main-header-left {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+
+        .main-header h3 {
+            font-size: 15px;
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .main-header .header-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .btn-header {
+            padding: 8px 14px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-primary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .btn-header:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .btn-header.saved {
+            background: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+
+        /* ===== ОКНО ЧАТА ===== */
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .welcome-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            gap: 12px;
+        }
+
+        .welcome-screen .welcome-icon {
+            font-size: 48px;
+            opacity: 0.5;
+        }
+
+        .welcome-screen p {
+            font-size: 15px;
+        }
+
+        .welcome-screen .welcome-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        .message {
+            max-width: 72%;
+            padding: 14px 18px;
+            border-radius: 14px;
+            line-height: 1.55;
+            font-size: 14px;
+            word-wrap: break-word;
+            transition: background var(--transition-speed);
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background: var(--bg-message-user);
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.assistant {
+            align-self: flex-start;
+            background: var(--bg-message-assistant);
+            border: 1px solid var(--border-message);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message .role {
+            font-size: 11px;
+            margin-bottom: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .message.user .role {
+            color: var(--info);
+        }
+
+        .message.assistant .role {
+            color: var(--text-accent);
+        }
+
+        /* ===== ВВОД СООБЩЕНИЯ ===== */
+        .input-area {
+            padding: 16px 24px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-primary);
+            transition: all var(--transition-speed);
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .input-wrapper textarea {
+            flex: 1;
+            padding: 12px 16px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 14px;
+            resize: none;
+            height: 48px;
+            max-height: 120px;
+            font-family: inherit;
+            transition: all var(--transition-speed);
+        }
+
+        .input-wrapper textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .input-wrapper textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        .btn-send {
+            padding: 0 18px;
+            height: 48px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .btn-send:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-send:disabled {
+            background: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        .input-hint {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 6px;
+            text-align: right;
+        }
+
+        /* ===== ЗАГРУЗКА ===== */
+        .typing-indicator {
+            display: none;
+            align-self: flex-start;
+            padding: 14px 18px;
+            background: var(--bg-message-assistant);
+            border: 1px solid var(--border-message);
+            border-radius: 14px;
+            border-bottom-left-radius: 4px;
+            margin: 0 24px 8px;
+        }
+
+        .typing-indicator.visible {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: bounce 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes bounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-8px); }
+        }
+
+        /* ===== ПАНЕЛЬ НАСТРОЕК (справа) ===== */
+        .settings-panel-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--overlay);
+            z-index: 100;
+            justify-content: flex-end;
+        }
+
+        .settings-panel-overlay.open {
+            display: flex;
+        }
+
+        .settings-panel {
+            width: 440px;
+            max-width: 90vw;
+            height: 100vh;
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border-primary);
+            overflow-y: auto;
+            padding: 0;
+            animation: slideIn 0.25s ease;
+            transition: background var(--transition-speed);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        .settings-panel-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            background: var(--bg-secondary);
+            z-index: 1;
+        }
+
+        .settings-panel-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .btn-close-panel {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 8px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+
+        .btn-close-panel:hover {
+            background: var(--danger-soft);
+            color: var(--danger);
+        }
+
+        .settings-section {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .settings-section:last-child {
+            border-bottom: none;
+        }
+
+        .settings-section-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+        }
+
+        .settings-tabs {
+            display: flex;
+            gap: 8px;
+            padding: 12px 24px;
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .settings-tab {
+            flex: 1;
+            padding: 9px 12px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.15s;
+        }
+
+        .settings-tab:hover {
+            color: var(--text-primary);
+            background: var(--bg-hover);
+        }
+
+        .settings-tab.active,
+        .settings-tab.active:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        /* Перетаскивание: ручка, переносимый элемент, индикатор */
+        .drag-handle {
+            cursor: grab;
+            font-size: 10px;
+            letter-spacing: -2px;
+            color: var(--text-muted);
+            user-select: none;
+            flex-shrink: 0;
+            opacity: 0;
+            transition: opacity 0.15s;
+            padding: 0 2px;
+        }
+
+        .project-header:hover .drag-handle,
+        .chat-item:hover .drag-handle,
+        .drag-handle:hover {
+            opacity: 1;
+            color: var(--text-accent);
+        }
+
+        .chat-item.active .drag-handle {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .dragging {
+            opacity: 0.4;
+            border: 1px dashed var(--accent);
+        }
+
+        .drop-over-top {
+            box-shadow: inset 0 3px 0 var(--accent) !important;
+        }
+
+        .drop-over-bottom {
+            box-shadow: inset 0 -3px 0 var(--accent) !important;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-group label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .form-group label .range-value {
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 13px;
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-primary);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+            transition: all var(--transition-speed);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .form-group input[type="range"] {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .form-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            border: 2px solid var(--bg-secondary);
+        }
+
+        .form-group input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            border: 2px solid var(--bg-secondary);
+        }
+
+        /* ===== ПАМЯТЬ ===== */
+        .memory-block {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-primary);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            transition: all var(--transition-speed);
+        }
+
+        .memory-block:last-child {
+            margin-bottom: 0;
+        }
+
+        .memory-block-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .memory-block-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .memory-block-title.global {
+            color: var(--info);
+        }
+
+        .memory-block-title.project {
+            color: var(--accent);
+        }
+
+        .memory-items {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .memory-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 8px 10px;
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            font-size: 13px;
+            line-height: 1.4;
+            transition: background var(--transition-speed);
+        }
+
+        .memory-item-text {
+            flex: 1;
+            color: var(--text-primary);
+        }
+
+        .memory-item .btn-icon {
+            flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+            font-size: 11px;
+        }
+
+        .memory-empty {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-style: italic;
+            padding: 8px 0;
+        }
+
+        .memory-add {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .memory-add input {
+            flex: 1;
+            padding: 8px 10px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 13px;
+            font-family: inherit;
+        }
+
+        .memory-add input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+
+        .btn-sm.accent {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-sm.accent:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-sm.success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-sm.muted {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .btn-sm.muted:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-sm.danger {
+            background: transparent;
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .btn-sm.danger:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* ===== МОДАЛЬНЫЕ ОКНА ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--overlay);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-modal);
+            padding: 28px;
+            border-radius: 14px;
+            width: 440px;
+            max-width: 90vw;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow);
+            transition: background var(--transition-speed);
+        }
+
+        .modal h3 {
+            margin-bottom: 20px;
+            color: var(--text-accent);
+            font-size: 17px;
+        }
+
+        .modal label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            margin-top: 14px;
+            font-weight: 500;
+        }
+
+        .modal label:first-of-type {
+            margin-top: 0;
+        }
+
+        .modal input[type="text"],
+        .modal textarea,
+        .modal select {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-primary);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+            transition: all var(--transition-speed);
+        }
+
+        .modal textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        .modal input:focus,
+        .modal select:focus,
+        .modal textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .modal-confirm-text {
+            padding: 12px 14px;
+            background: var(--danger-soft);
+            border-radius: 8px;
+            color: var(--danger);
+            font-size: 13px;
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 22px;
+        }
+
+        .modal-actions button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.15s;
+        }
+
+        .btn-cancel {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .btn-cancel:hover {
+            background: var(--text-muted);
+            color: white;
+        }
+
+        .btn-confirm {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-confirm:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-confirm.danger {
+            background: var(--danger);
+        }
+
+        .btn-confirm.danger:hover {
+            background: #c73652;
+        }
+
+        /* ===== УВЕДОМЛЕНИЯ ===== */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 12px 20px;
+            background: var(--bg-toast);
+            border: 1px solid var(--border-primary);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 14px;
+            z-index: 300;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toast.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            border-color: var(--success);
+        }
+
+        .toast.success::before {
+            content: "\2713";
+            color: var(--success);
+            font-weight: 700;
+        }
+
+        .toast.error {
+            border-color: var(--danger);
+        }
+
+        .toast.error::before {
+            content: "\2717";
+            color: var(--danger);
+            font-weight: 700;
+        }
+
+        .toast.info {
+            border-color: var(--info);
+        }
+
+        .toast.info::before {
+            content: "\2139";
+            color: var(--info);
+            font-weight: 700;
+        }
+
+        </style>
+</head>
+<body>
+    <!-- САЙДБАР -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-top">
+                <h2>Local AI Hub</h2>
+                <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Переключить тему">🌙</button>
+            </div>
+            <button class="btn-new-project" onclick="openModal('projectModal')">
+                <span>+</span> Новый проект
+            </button>
+        </div>
+        <div class="project-list" id="projectList"></div>
+    </aside>
+
+    <!-- ОСНОВНАЯ ОБЛАСТЬ -->
+    <main class="main">
+        <header class="main-header">
+            <div class="main-header-left">
+                <h3 id="chatTitle">Выберите чат</h3>
+                <span class="header-subtitle" id="chatSubtitle"></span>
+            </div>
+            <div class="header-actions">
+                <button class="btn-header" id="btnMemory" onclick="openSettings('memory')" disabled>
+                    🧠 Память
+                </button>
+                <button class="btn-header" id="btnSaveContext" onclick="saveContext()" disabled>
+                    Сохранить контекст
+                </button>
+                <button class="btn-header" id="btnRemember" onclick="rememberFacts()" disabled>
+                    📌 Запомнить
+                </button>
+                <button class="btn-header" id="btnSettings" onclick="openSettings('model')" disabled>
+                    Настройки
+                </button>
+            </div>
+        </header>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="welcome-screen">
+                <div class="welcome-icon">🤖</div>
+                <p>Добро пожаловать в Local AI Hub</p>
+                <span class="welcome-hint">Выберите проект и чат или создайте новый</span>
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            <span></span><span></span><span></span>
+        </div>
+
+        <div class="input-area">
+            <div class="input-wrapper">
+                <textarea id="messageInput" placeholder="Введите сообщение..." onkeydown="handleKeyDown(event)" disabled></textarea>
+                <button class="btn-send" id="sendBtn" onclick="sendMessage()" disabled>&#10148;</button>
+            </div>
+            <div class="input-hint">Enter — отправить, Shift+Enter — новая строка</div>
+        </div>
+    </main>
+
+    <!-- ПАНЕЛЬ НАСТРОЕК (справа) -->
+    <div class="settings-panel-overlay" id="settingsOverlay" onclick="closeSettingsIfOverlay(event)">
+        <div class="settings-panel" id="settingsPanel">
+            <div class="settings-panel-header">
+                <h3 id="settingsPanelTitle">Настройки</h3>
+                <button class="btn-close-panel" onclick="closeSettings()">&times;</button>
+            </div>
+            <div id="settingsPanelContent"></div>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО: НОВЫЙ ПРОЕКТ -->
+    <div class="modal-overlay" id="projectModal">
+        <div class="modal">
+            <h3>Новый проект</h3>
+            <label>Название</label>
+            <input type="text" placeholder="Например: Разработка API" id="projectName" onkeydown="if(event.key==='Enter')createProject()">
+            <label>Описание</label>
+            <textarea placeholder="Краткое описание цели проекта" id="projectDesc"></textarea>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal('projectModal')">Отмена</button>
+                <button class="btn-confirm" onclick="createProject()">Создать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО: НОВЫЙ ЧАТ -->
+    <div class="modal-overlay" id="chatModal">
+        <div class="modal">
+            <h3>Новый чат</h3>
+            <label>Название</label>
+            <input type="text" placeholder="Например: Обсуждение архитектуры" id="chatName" onkeydown="if(event.key==='Enter')createChat()">
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal('chatModal')">Отмена</button>
+                <button class="btn-confirm" onclick="createChat()">Создать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО: УДАЛЕНИЕ ПРОЕКТА -->
+    <div class="modal-overlay" id="deleteProjectModal">
+        <div class="modal">
+            <h3>Удалить проект</h3>
+            <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 8px;">
+                Вы уверены, что хотите удалить проект <strong id="deleteProjectName"></strong>?
+            </p>
+            <div class="modal-confirm-text">
+                Все чаты и сообщения в проекте будут удалены безвозвратно.
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal('deleteProjectModal')">Отмена</button>
+                <button class="btn-confirm danger" onclick="confirmDeleteProject()">Удалить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО: УДАЛЕНИЕ ЧАТА -->
+    <div class="modal-overlay" id="deleteChatModal">
+        <div class="modal">
+            <h3>Удалить чат</h3>
+            <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 8px;">
+                Вы уверены, что хотите удалить чат <strong id="deleteChatName"></strong>?
+            </p>
+            <div class="modal-confirm-text">
+                Все сообщения в чате будут удалены безвозвратно.
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal('deleteChatModal')">Отмена</button>
+                <button class="btn-confirm danger" onclick="confirmDeleteChat()">Удалить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- УВЕДОМЛЕНИЕ -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ===== ДАННЫЕ =====
+        let state = {
+            projects: [
+                {
+                    id: 1,
+                    name: 'Разработка Python',
+                    description: 'Backend разработка на Python',
+                    model_config: {
+                        model: 'llama3',
+                        temperature: 0.7,
+                        top_p: 0.9,
+                        max_tokens: 2048,
+                        system_prompt: 'Ты — полезный ИИ-ассистент. Отвечай кратко и по делу.'
+                    },
+                    memory: ['Используем SQLAlchemy 2.0', 'Python 3.10+'],
+                    chats: [
+                        { id: 1, name: 'Архитектура API', active: true, messages: [
+                            { role: 'user', content: 'Как лучше организовать REST API для нашего проекта?' },
+                            { role: 'assistant', content: 'Рекомендую использовать FastAPI с паттерном роутеров. Каждый эндпоинт в отдельном модуле, сервисный слой для бизнес-логики.' }
+                        ]},
+                        { id: 2, name: 'Тестирование', active: false, messages: [] },
+                        { id: 3, name: 'Рефакторинг', active: false, messages: [] }
+                    ]
+                },
+                {
+                    id: 2,
+                    name: 'Анализ данных',
+                    description: 'Data Science проекты',
+                    model_config: {
+                        model: 'mistral',
+                        temperature: 0.3,
+                        top_p: 0.85,
+                        max_tokens: 4096,
+                        system_prompt: 'Ты — аналитик данных. Отвечай с примерами кода на Python.'
+                    },
+                    memory: ['Датасеты хранятся в /data/', 'Используем pandas и matplotlib'],
+                    chats: [
+                        { id: 4, name: 'EDA исследование', active: false, messages: [] },
+                        { id: 5, name: 'Моделирование', active: false, messages: [] }
+                    ]
+                }
+            ],
+            globalMemory: ['Имя пользователя: Алексей', 'Предпочитаемый язык: Python', 'Любимый IDE: VS Code'],
+            currentProjectId: null,
+            currentChatId: null,
+            nextProjectId: 3,
+            nextChatId: 100,
+            settingsTab: 'model'
+        };
+
+        let pendingDeleteProjectId = null;
+        let pendingDeleteChatId = null;
+        let currentSettingsProjectId = null;
+        let dragItem = null;
+        let dragPos = null;
+
+        // ===== ПОРЯДОК (localStorage) =====
+        const PROJECT_ORDER_KEY = 'aihub-project-order';
+        const CHAT_ORDER_KEY = 'aihub-chat-order';
+
+        function loadOrder(key) {
+            try {
+                const raw = localStorage.getItem(key);
+                return raw ? JSON.parse(raw) : null;
+            } catch (e) { return null; }
+        }
+
+        function saveOrder(key, value) {
+            try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
+        }
+
+        function applySavedOrder() {
+            const projOrder = loadOrder(PROJECT_ORDER_KEY);
+            if (Array.isArray(projOrder) && projOrder.length) {
+                const byId = new Map(state.projects.map(p => [p.id, p]));
+                const ordered = [];
+                projOrder.forEach(id => {
+                    if (byId.has(id)) { ordered.push(byId.get(id)); byId.delete(id); }
+                });
+                byId.forEach(p => ordered.push(p));
+                state.projects = ordered;
+            }
+
+            const chatMap = loadOrder(CHAT_ORDER_KEY);
+            if (chatMap && typeof chatMap === 'object') {
+                state.projects.forEach(project => {
+                    const order = chatMap[String(project.id)];
+                    if (Array.isArray(order) && order.length) {
+                        const byId = new Map(project.chats.map(c => [c.id, c]));
+                        const ordered = [];
+                        order.forEach(id => {
+                            if (byId.has(id)) { ordered.push(byId.get(id)); byId.delete(id); }
+                        });
+                        byId.forEach(c => ordered.push(c));
+                        project.chats = ordered;
+                    }
+                });
+            }
+        }
+
+        function saveProjectOrder() {
+            saveOrder(PROJECT_ORDER_KEY, state.projects.map(p => p.id));
+        }
+
+        function saveChatOrder(projectId) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            const map = loadOrder(CHAT_ORDER_KEY) || {};
+            map[String(projectId)] = project.chats.map(c => c.id);
+            saveOrder(CHAT_ORDER_KEY, map);
+        }
+
+        // ===== ТЕМА =====
+        function toggleTheme() {
+            const html = document.documentElement;
+            const btn = document.getElementById('themeToggle');
+            if (html.getAttribute('data-theme') === 'dark') {
+                html.setAttribute('data-theme', 'light');
+                btn.textContent = '☀️';
+                btn.title = 'Тёмная тема';
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                btn.textContent = '🌙';
+                btn.title = 'Светлая тема';
+            }
+        }
+
+        // ===== МОДАЛКИ =====
+        function openModal(id) {
+            document.getElementById(id).classList.add('open');
+            const firstInput = document.querySelector(`#${id} input, #${id} textarea`);
+            if (firstInput) setTimeout(() => firstInput.focus(), 100);
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('open');
+        }
+
+        // ===== РЕНДЕР САЙДБАРА =====
+        function renderSidebar() {
+            const list = document.getElementById('projectList');
+            list.innerHTML = '';
+
+            state.projects.forEach(project => {
+                const div = document.createElement('div');
+                div.className = 'project';
+
+                const hasActiveChat = project.chats.some(c => c.active);
+                const isExpanded = hasActiveChat || project.id === state.currentProjectId;
+
+                div.innerHTML = `
+                    <div class="project-header ${isExpanded ? 'expanded' : ''} ${hasActiveChat ? 'active' : ''}"
+                         draggable="false"
+                         ondragstart="startDrag(event, ${project.id})"
+                         ondragover="overDrag(event, ${project.id})"
+                         ondragleave="leaveDrag(event, ${project.id})"
+                         ondrop="dropDrag(event, ${project.id})"
+                         ondragend="endDrag(event)"
+                         onclick="toggleProject(${project.id})">
+                        <span class="drag-handle" onmousedown="readyDrag(event,'project',${project.id})" onclick="event.stopPropagation()" title="Переместить проект">⋮⋮</span>
+                        <span class="project-icon">📁</span>
+                        <span class="project-name">${project.name}</span>
+                        <span class="project-chevron">▶</span>
+                        <div class="project-actions">
+                            <button class="btn-icon" onclick="event.stopPropagation(); openChatModalForProject(${project.id})" title="Добавить чат">+</button>
+                            <button class="btn-icon" onclick="event.stopPropagation(); openSettings('model', ${project.id})" title="Настройки проекта">⚙</button>
+                            <button class="btn-icon danger" onclick="event.stopPropagation(); requestDeleteProject(${project.id})" title="Удалить проект">✕</button>
+                        </div>
+                    </div>
+                    <div class="chats-list ${isExpanded ? 'open' : ''}">
+                        <div class="chats-header">
+                            <span>Чаты (${project.chats.length})</span>
+                            <button class="btn-icon" onclick="event.stopPropagation(); openChatModalForProject(${project.id})" title="Добавить чат">+</button>
+                        </div>
+                        ${project.chats.map(chat => `
+                            <div class="chat-item ${chat.active ? 'active' : ''}"
+                                 draggable="false"
+                                 ondragstart="startDrag(event, ${chat.id})"
+                                 ondragover="overDrag(event, ${chat.id})"
+                                 ondragleave="leaveDrag(event, ${chat.id})"
+                                 ondrop="dropDrag(event, ${chat.id}, ${project.id})"
+                                 ondragend="endDrag(event)"
+                                 onclick="selectChat(${project.id}, ${chat.id})">
+                                <span class="drag-handle" onmousedown="readyDrag(event,'chat',${chat.id},${project.id})" onclick="event.stopPropagation()" title="Переместить чат">⋮⋮</span>
+                                <span class="chat-icon">💬</span>
+                                <span class="chat-name">${chat.name}</span>
+                                <div class="chat-actions">
+                                    <button class="btn-icon" onclick="event.stopPropagation(); openSettings('model')" title="Настройки чата">⚙</button>
+                                    <button class="btn-icon danger" onclick="event.stopPropagation(); requestDeleteChat(${project.id}, ${chat.id})" title="Удалить чат">✕</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+
+                list.appendChild(div);
+            });
+        }
+
+        // ===== ПЕРЕТАСКИВАНИЕ (DRAG & DROP) =====
+        function readyDrag(event, type, id, projectId) {
+            const target = event.target.closest('.project-header, .chat-item');
+            if (target) {
+                target.setAttribute('draggable', 'true');
+                dragItem = { type: type, id: id, projectId: projectId };
+            }
+        }
+
+        function startDrag(event, id) {
+            if (!dragItem || dragItem.id !== id) return;
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', String(id));
+            event.currentTarget.classList.add('dragging');
+        }
+
+        function overDrag(event, id) {
+            if (!dragItem) return;
+            event.preventDefault();
+            const rect = event.currentTarget.getBoundingClientRect();
+            dragPos = { id: id, pos: event.clientY < rect.top + rect.height / 2 ? 'top' : 'bottom' };
+            event.currentTarget.classList.remove('drop-over-top', 'drop-over-bottom');
+            event.currentTarget.classList.add(dragPos.pos === 'top' ? 'drop-over-top' : 'drop-over-bottom');
+        }
+
+        function leaveDrag(event) {
+            const current = event.currentTarget;
+            if (!current.contains(event.relatedTarget)) {
+                current.classList.remove('drop-over-top', 'drop-over-bottom');
+            }
+        }
+
+        function dropDrag(event, id, projectId) {
+            if (!dragItem) return;
+            event.preventDefault();
+            if (dragItem.type === 'project' && dragItem.id !== id) {
+                reorderProjects(dragItem.id, id);
+            } else if (dragItem.type === 'chat' && dragItem.id !== id) {
+                reorderChats(dragItem.projectId, dragItem.id, id);
+            }
+            endDrag(event);
+        }
+
+        function endDrag() {
+            document.querySelectorAll('.project-header, .chat-item').forEach(el => {
+                el.removeAttribute('draggable');
+                el.classList.remove('dragging', 'drop-over-top', 'drop-over-bottom');
+            });
+            dragItem = null;
+            dragPos = null;
+        }
+
+        function reorderProjects(fromId, toId) {
+            const from = state.projects.findIndex(p => p.id === fromId);
+            const to = state.projects.findIndex(p => p.id === toId);
+            if (from === -1 || to === -1 || from === to) return;
+            const [moved] = state.projects.splice(from, 1);
+            const target = state.projects.findIndex(p => p.id === toId);
+            state.projects.splice(target + (dragPos && dragPos.pos === 'top' ? 0 : 1), 0, moved);
+            saveProjectOrder();
+            renderSidebar();
+        }
+
+        function reorderChats(projectId, fromId, toId) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            const from = project.chats.findIndex(c => c.id === fromId);
+            const to = project.chats.findIndex(c => c.id === toId);
+            if (from === -1 || to === -1 || from === to) return;
+            const [moved] = project.chats.splice(from, 1);
+            const target = project.chats.findIndex(c => c.id === toId);
+            project.chats.splice(target + (dragPos && dragPos.pos === 'top' ? 0 : 1), 0, moved);
+            saveChatOrder(projectId);
+            renderSidebar();
+        }
+
+        // ===== ПРОЕКТЫ =====
+        function toggleProject(projectId) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+
+            if (state.currentProjectId === projectId) {
+                state.currentProjectId = null;
+            } else {
+                state.currentProjectId = projectId;
+            }
+
+            renderSidebar();
+        }
+
+        function createProject() {
+            const name = document.getElementById('projectName').value.trim();
+            if (!name) {
+                showToast('Введите название проекта', 'error');
+                return;
+            }
+
+            const desc = document.getElementById('projectDesc').value.trim();
+            state.projects.push({
+                id: state.nextProjectId++,
+                name: name,
+                description: desc,
+                model_config: {
+                    model: 'llama3',
+                    temperature: 0.7,
+                    top_p: 0.9,
+                    max_tokens: 2048,
+                    system_prompt: 'Ты — полезный ИИ-ассистент. Отвечай кратко и по делу.'
+                },
+                memory: [],
+                chats: []
+            });
+
+            document.getElementById('projectName').value = '';
+            document.getElementById('projectDesc').value = '';
+            closeModal('projectModal');
+            renderSidebar();
+            showToast(`Проект «${name}» создан`, 'success');
+        }
+
+        function requestDeleteProject(id) {
+            const project = state.projects.find(p => p.id === id);
+            if (!project) return;
+            pendingDeleteProjectId = id;
+            document.getElementById('deleteProjectName').textContent = project.name;
+            openModal('deleteProjectModal');
+        }
+
+        function confirmDeleteProject() {
+            if (pendingDeleteProjectId === null) return;
+            const project = state.projects.find(p => p.id === pendingDeleteProjectId);
+            const name = project ? project.name : '';
+            state.projects = state.projects.filter(p => p.id !== pendingDeleteProjectId);
+
+            if (state.currentProjectId === pendingDeleteProjectId) {
+                state.currentProjectId = null;
+                state.currentChatId = null;
+                resetMainArea();
+            }
+
+            pendingDeleteProjectId = null;
+            closeModal('deleteProjectModal');
+            renderSidebar();
+            showToast(`Проект «${name}» удалён`, 'success');
+        }
+
+        // ===== ЧАТЫ =====
+        function openChatModalForProject(projectId) {
+            state.currentProjectId = projectId;
+            document.getElementById('chatName').value = '';
+            openModal('chatModal');
+        }
+
+        function createChat() {
+            const name = document.getElementById('chatName').value.trim();
+            if (!name) {
+                showToast('Введите название чата', 'error');
+                return;
+            }
+
+            const project = state.projects.find(p => p.id === state.currentProjectId);
+            if (!project) return;
+
+            project.chats.forEach(c => c.active = false);
+            const newChat = {
+                id: state.nextChatId++,
+                name: name,
+                active: true,
+                messages: []
+            };
+            project.chats.push(newChat);
+
+            state.currentChatId = newChat.id;
+            closeModal('chatModal');
+            renderSidebar();
+            selectChat(state.currentProjectId, newChat.id);
+            showToast(`Чат «${name}» создан`, 'success');
+        }
+
+        function requestDeleteChat(projectId, chatId) {
+            const project = state.projects.find(p => p.id === projectId);
+            const chat = project?.chats.find(c => c.id === chatId);
+            if (!chat) return;
+            pendingDeleteProjectId = projectId;
+            pendingDeleteChatId = chatId;
+            document.getElementById('deleteChatName').textContent = chat.name;
+            openModal('deleteChatModal');
+        }
+
+        function confirmDeleteChat() {
+            if (pendingDeleteChatId === null) return;
+            const project = state.projects.find(p => p.id === pendingDeleteProjectId);
+            const chat = project?.chats.find(c => c.id === pendingDeleteChatId);
+            const name = chat ? chat.name : '';
+
+            if (project) {
+                project.chats = project.chats.filter(c => c.id !== pendingDeleteChatId);
+
+                if (state.currentChatId === pendingDeleteChatId) {
+                    if (project.chats.length > 0) {
+                        project.chats[0].active = true;
+                        state.currentChatId = project.chats[0].id;
+                        selectChat(pendingDeleteProjectId, project.chats[0].id);
+                    } else {
+                        state.currentChatId = null;
+                        resetMainArea();
+                    }
+                }
+            }
+
+            pendingDeleteProjectId = null;
+            pendingDeleteChatId = null;
+            closeModal('deleteChatModal');
+            renderSidebar();
+            showToast(`Чат «${name}» удалён`, 'success');
+        }
+
+        function selectChat(projectId, chatId) {
+            state.projects.forEach(p => p.chats.forEach(c => c.active = false));
+
+            const project = state.projects.find(p => p.id === projectId);
+            const chat = project?.chats.find(c => c.id === chatId);
+            if (!chat) return;
+
+            chat.active = true;
+            state.currentProjectId = projectId;
+            state.currentChatId = chatId;
+
+            document.getElementById('chatTitle').textContent = chat.name;
+            document.getElementById('chatSubtitle').textContent = project.name;
+
+            document.getElementById('messageInput').disabled = false;
+            document.getElementById('sendBtn').disabled = false;
+            document.getElementById('btnSettings').disabled = false;
+            document.getElementById('btnSaveContext').disabled = false;
+            document.getElementById('btnRemember').disabled = false;
+            document.getElementById('btnMemory').disabled = false;
+
+            const container = document.getElementById('chatMessages');
+            if (chat.messages.length === 0) {
+                container.innerHTML = `
+                    <div class="message assistant">
+                        <div class="role">Assistant</div>
+                        Чат «${chat.name}» активирован. Чем могу помочь?
+                    </div>
+                `;
+            } else {
+                container.innerHTML = chat.messages.map(m => `
+                    <div class="message ${m.role}">
+                        <div class="role">${m.role === 'user' ? 'Вы' : 'Assistant'}</div>
+                        ${m.content}
+                    </div>
+                `).join('');
+                container.scrollTop = container.scrollHeight;
+            }
+
+            renderSidebar();
+        }
+
+        function resetMainArea() {
+            document.getElementById('chatTitle').textContent = 'Выберите чат';
+            document.getElementById('chatSubtitle').textContent = '';
+            document.getElementById('messageInput').disabled = true;
+            document.getElementById('sendBtn').disabled = true;
+            document.getElementById('btnSettings').disabled = true;
+            document.getElementById('btnSaveContext').disabled = true;
+            document.getElementById('btnRemember').disabled = true;
+            document.getElementById('btnMemory').disabled = true;
+            document.getElementById('chatMessages').innerHTML = `
+                <div class="welcome-screen">
+                    <div class="welcome-icon">🤖</div>
+                    <p>Добро пожаловать в Local AI Hub</p>
+                    <span class="welcome-hint">Выберите проект и чат или создайте новый</span>
+                </div>
+            `;
+        }
+
+        // ===== НАСТРОЙКИ (ПАНЕЛЬ СПРАВА) =====
+        function openSettings(tab, projectId) {
+            state.settingsTab = tab || 'model';
+            const pid = projectId || state.currentProjectId;
+            if (pid) currentSettingsProjectId = pid;
+
+            renderSettingsPanel();
+            document.getElementById('settingsOverlay').classList.add('open');
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsOverlay').classList.remove('open');
+        }
+
+        function closeSettingsIfOverlay(e) {
+            if (e.target === document.getElementById('settingsOverlay')) {
+                closeSettings();
+            }
+        }
+
+        function renderSettingsPanel() {
+            const panel = document.getElementById('settingsPanelContent');
+            const title = document.getElementById('settingsPanelTitle');
+            const project = state.projects.find(p => p.id === currentSettingsProjectId);
+
+            if (!project) {
+                panel.innerHTML = '<div style="padding:24px; color: var(--text-muted)">Выберите проект для настроек</div>';
+                title.textContent = 'Настройки';
+                return;
+            }
+
+            const cfg = project.model_config;
+            const tabsHtml = `
+                <div class="settings-tabs">
+                    <button class="settings-tab ${state.settingsTab === 'model' ? 'active' : ''}"
+                            onclick="state.settingsTab='model'; renderSettingsPanel();">⚙️ Настройки</button>
+                    <button class="settings-tab ${state.settingsTab === 'memory' ? 'active' : ''}"
+                            onclick="state.settingsTab='memory'; renderSettingsPanel();">🧠 Память</button>
+                </div>
+            `;
+
+            if (state.settingsTab === 'model') {
+                title.textContent = `Настройки: ${project.name}`;
+                panel.innerHTML = tabsHtml + `
+                    <div class="settings-section">
+                        <div class="settings-section-title">Модель</div>
+                        <div class="form-group">
+                            <label>Модель</label>
+                            <select id="setModel">
+                                <option value="llama3" ${cfg.model==='llama3'?'selected':''}>Llama 3</option>
+                                <option value="mistral" ${cfg.model==='mistral'?'selected':''}>Mistral</option>
+                                <option value="codellama" ${cfg.model==='codellama'?'selected':''}>Code Llama</option>
+                                <option value="gigachat" ${cfg.model==='gigachat'?'selected':''}>GigaChat</option>
+                                <option value="gigachat-pro" ${cfg.model==='gigachat-pro'?'selected':''}>GigaChat Pro</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="settings-section">
+                        <div class="settings-section-title">Параметры генерации</div>
+                        <div class="form-group">
+                            <label>Температура <span class="range-value" id="tempVal">${cfg.temperature}</span></label>
+                            <input type="range" min="0" max="2" step="0.1" value="${cfg.temperature}" id="setTemp"
+                                   oninput="document.getElementById('tempVal').textContent=this.value">
+                        </div>
+                        <div class="form-group">
+                            <label>Top P <span class="range-value" id="topPVal">${cfg.top_p}</span></label>
+                            <input type="range" min="0" max="1" step="0.05" value="${cfg.top_p}" id="setTopP"
+                                   oninput="document.getElementById('topPVal').textContent=this.value">
+                        </div>
+                        <div class="form-group">
+                            <label>Max Tokens <span class="range-value" id="maxTokVal">${cfg.max_tokens}</span></label>
+                            <input type="range" min="256" max="8192" step="256" value="${cfg.max_tokens}" id="setMaxTok"
+                                   oninput="document.getElementById('maxTokVal').textContent=this.value">
+                        </div>
+                    </div>
+                    <div class="settings-section">
+                        <div class="settings-section-title">Системный промпт</div>
+                        <div class="form-group">
+                            <textarea id="setSystemPrompt" placeholder="Ты — полезный ассистент...">${cfg.system_prompt}</textarea>
+                        </div>
+                    </div>
+                    <div class="settings-section" style="display:flex; gap:10px; justify-content:flex-end;">
+                        <button class="btn-sm muted" onclick="closeSettings()">Отмена</button>
+                        <button class="btn-sm accent" onclick="saveModelSettings(${project.id})">Сохранить</button>
+                    </div>
+                `;
+            } else {
+                title.textContent = `Память: ${project.name}`;
+                panel.innerHTML = tabsHtml + `
+                    <div class="settings-section">
+                        <div class="settings-section-title">🌍 Глобальная память (все проекты)</div>
+                        <div class="memory-block">
+                            <div class="memory-items">
+                                ${state.globalMemory.length === 0
+                                    ? '<div class="memory-empty">Нет сохранённых фактов</div>'
+                                    : state.globalMemory.map((item, i) => `
+                                        <div class="memory-item">
+                                            <span class="memory-item-text">${item}</span>
+                                            <button class="btn-icon danger" onclick="removeGlobalMemory(${i})" title="Удалить">✕</button>
+                                        </div>
+                                    `).join('')}
+                            </div>
+                            <div class="memory-add">
+                                <input type="text" id="newGlobalMemory" placeholder="Добавить факт..."
+                                       onkeydown="if(event.key==='Enter')addGlobalMemory()">
+                                <button class="btn-sm accent" onclick="addGlobalMemory()">Добавить</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settings-section">
+                        <div class="settings-section-title">📌 Память проекта: ${project.name}</div>
+                        <div class="memory-block">
+                            <div class="memory-items">
+                                ${project.memory.length === 0
+                                    ? '<div class="memory-empty">Нет сохранённых фактов</div>'
+                                    : project.memory.map((item, i) => `
+                                        <div class="memory-item">
+                                            <span class="memory-item-text">${item}</span>
+                                            <button class="btn-icon danger" onclick="removeProjectMemory(${project.id}, ${i})" title="Удалить">✕</button>
+                                        </div>
+                                    `).join('')}
+                            </div>
+                            <div class="memory-add">
+                                <input type="text" id="newProjectMemory" placeholder="Добавить факт..."
+                                       onkeydown="if(event.key==='Enter')addProjectMemory(${project.id})">
+                                <button class="btn-sm accent" onclick="addProjectMemory(${project.id})">Добавить</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settings-section" style="display:flex; gap:10px; justify-content:flex-end;">
+                        <button class="btn-sm accent" onclick="closeSettings()">Готово</button>
+                    </div>
+                `;
+            }
+        }
+
+        function saveModelSettings(projectId) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+
+            project.model_config = {
+                model: document.getElementById('setModel').value,
+                temperature: parseFloat(document.getElementById('setTemp').value),
+                top_p: parseFloat(document.getElementById('setTopP').value),
+                max_tokens: parseInt(document.getElementById('setMaxTok').value),
+                system_prompt: document.getElementById('setSystemPrompt').value
+            };
+
+            showToast('Настройки модели сохранены', 'success');
+        }
+
+        // ===== ПАМЯТЬ =====
+        function addGlobalMemory() {
+            const input = document.getElementById('newGlobalMemory');
+            const text = input.value.trim();
+            if (!text) return;
+            state.globalMemory.push(text);
+            input.value = '';
+            renderSettingsPanel();
+            showToast('Факт добавлен в глобальную память', 'success');
+        }
+
+        function removeGlobalMemory(index) {
+            state.globalMemory.splice(index, 1);
+            renderSettingsPanel();
+        }
+
+        function addProjectMemory(projectId) {
+            const input = document.getElementById('newProjectMemory');
+            const text = input.value.trim();
+            if (!text) return;
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            project.memory.push(text);
+            input.value = '';
+            renderSettingsPanel();
+            showToast('Факт добавлен в память проекта', 'success');
+        }
+
+        function removeProjectMemory(projectId, index) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            project.memory.splice(index, 1);
+            renderSettingsPanel();
+        }
+
+        function rememberFacts() {
+            const project = state.projects.find(p => p.id === state.currentProjectId);
+            if (!project) return;
+
+            showToast('Анализ сообщений для извлечения фактов...', 'info');
+
+            setTimeout(() => {
+                const sampleFacts = [
+                    'Предпочтительный стиль кода: функциональный',
+                    'Проект использует асинхронные вызовы'
+                ];
+                const fact = sampleFacts[Math.floor(Math.random() * sampleFacts.length)];
+                if (!project.memory.includes(fact)) {
+                    project.memory.push(fact);
+                }
+                showToast(`Факт запомнен: «${fact}»`, 'success');
+            }, 1200);
+        }
+
+        // ===== ЧАТ: СООБЩЕНИЯ =====
+        function handleKeyDown(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const project = state.projects.find(p => p.id === state.currentProjectId);
+            const chat = project?.chats.find(c => c.id === state.currentChatId);
+            if (!chat) return;
+
+            chat.messages.push({ role: 'user', content: text });
+            addMessage(text, 'user');
+            input.value = '';
+
+            const typing = document.getElementById('typingIndicator');
+            typing.classList.add('visible');
+            document.getElementById('sendBtn').disabled = true;
+
+            // Проверка на ключевое слово "запомни"
+            const rememberKeywords = ['запомни', 'запомни', 'сохрани', 'запомни это'];
+            const shouldRemember = rememberKeywords.some(k => text.toLowerCase().includes(k));
+
+            setTimeout(() => {
+                typing.classList.remove('visible');
+                const reply = 'Это демонстрационный ответ. В реальном приложении здесь будет ответ от LLM-модели на основе настроек проекта и контекста чата.';
+                chat.messages.push({ role: 'assistant', content: reply });
+                addMessage(reply, 'assistant');
+                document.getElementById('sendBtn').disabled = false;
+
+                if (shouldRemember) {
+                    const fact = text.replace(/запомни|сохрани|запомни это/gi, '').trim();
+                    if (fact && project && !project.memory.includes(fact)) {
+                        project.memory.push(fact);
+                        showToast(`Факт запомнен: «${fact}»`, 'success');
+                    }
+                }
+            }, 1500);
+        }
+
+        function addMessage(text, role) {
+            const container = document.getElementById('chatMessages');
+            const div = document.createElement('div');
+            div.className = `message ${role}`;
+            div.innerHTML = `<div class="role">${role === 'user' ? 'Вы' : 'Assistant'}</div>${text}`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function saveContext() {
+            const btn = document.getElementById('btnSaveContext');
+            btn.textContent = 'Контекст сохранён';
+            btn.classList.add('saved');
+            showToast('Контекст чата сохранён', 'success');
+            setTimeout(() => {
+                btn.textContent = 'Сохранить контекст';
+                btn.classList.remove('saved');
+            }, 2000);
+        }
+
+        // ===== УВЕДОМЛЕНИЯ =====
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} visible`;
+            clearTimeout(toast._timer);
+            toast._timer = setTimeout(() => toast.classList.remove('visible'), 3000);
+        }
+
+        // ===== ЗАКРЫТИЕ МОДАЛОК ПО ОВЕРЛЕЮ =====
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) this.classList.remove('open');
+            });
+        });
+
+        // ===== ИНИЦИАЛИЗАЦИЯ =====
+        applySavedOrder();
+        saveProjectOrder();
+        renderSidebar();
+    </script>
+</body>
+</html>
